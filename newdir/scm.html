@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Music Player</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" type="image/png" href="icon.png" />
+<style type="text/css">
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td { 
+margin: 0; padding: 0; border: none; outline-style: none; font-size: 100%; font-size: 100%; background: transparent; background-image: none; }
+body { line-height: 1;}
+ol, ul { list-style: none;list-style-position: outside;list-style-type: none;list-style-image: none;}blockquote, q { quotes: none;}:focus { outline-width: 0px;outline-style: none;}ins { text-decoration: none;}del { text-decoration: line-through;}table { border-collapse: collapse;border-spacing: 0px;}
+body{overflow:hidden; background:transparent; }
+#contentW, #playlistW, #playerW{ position:absolute; overflow:hidden;}
+#contentW{z-index:10; top:0; bottom:0; left:0; right:0;}
+#playlistW{ z-index:1; right:0; top:0; bottom:0; width:0; }
+#playerW{z-index:2; left:0; right:0; height:0;}
+#content{ position:relative; height:100%; width:100%;  }
+#player, #playlist{
+	position:relative; height:100%; width:100%; font-size:11px;  
+	font-family:Verdana,Arial,sans-serif; cursor:default; line-height:1.2;}
+#player .item, #player .mainImage, #player .ui-slider-handle,
+#player #seekerSlider,#player #seeker
+{ height:25px; top:0; position:absolute; }
+#player .text, #player #seekerBase, #player #seekerBuffered, #player{ position:absolute; }
+#player a{ text-decoration:none; }
+#player a:hover{ text-decoration:underline; }
+#player #baseLeft{ z-index:1; }
+#player #baseRight{ z-index:1; right:0; background-position:right top; }
+#player #play{ z-index:3; }
+#player .item{ z-index:2; }
+#player .bound{ position:relative;height:100%; }
+#player .text{ z-index:2; font-size:11px; height:20px; top:5px; cursor:default; }
+#player .button,#player .ui-slider-handle{cursor:pointer; }
+#player #seekerSliderBase{ z-index:3; margin-left:-3px; top:9px; width:6px; height:7px; }
+#player #seekerBuffered{ z-index:1; width:70%; top:9px; height:7px; left:0; }
+#player #seekerBase{ z-index:2; width:100%; border:1px solid; top:9px; height:5px; left:-1px;  }
+#player #tooltip{ width:115px; text-align:center; }
+#playlist{ border-bottom:1px solid; }
+#playlist .module{ background:white; border:1px solid; border-bottom:none; }
+#playlistContainer{ position:absolute;top:20px;bottom:0;left:0;right:0;z-index:1; }
+#playlist h3{ border-bottom:1px solid; font-weight:bold; padding: 3px 5px;}
+#playlist li{ cursor:pointer; }
+#playlist .items{ 
+	overflow-x:hidden; overflow-y:auto; 
+	list-style-type:decimal;
+	list-style-position: inside;
+  position:absolute;
+  top:0; bottom:0; right:0; left:0;
+}
+#playlist .item{ cursor:pointer; padding:4px 5px; width:1000px; }
+#player,#player a{ color:#fff; }
+#player{ background:url(https://scmplayer.co/skins/black/sizerAndVol.png); background-position:bottom; }
+#player .mainImage{ background:url(https://scmplayer.co/skins/black/main.png); }
+#player #baseLeft{ width:93px; }
+#player #baseRight{ width:145px;}
+#player .button{  width:26px; }
+#player #play{ background:url(https://scmplayer.co/skins/black/playBtn.png); }
+#player #play,#player #pause{ left:26px; }
+#player #previous{ left:0px; }
+#player #next{ left:52px; }
+#player #title{ left:90px;  }
+#player #tooltip{ right:196px; }
+#player #timer{ right:120px;  }
+#player #list{ right:0px; }
+#player #seeker{ right:320px; }
+#player #seekerBase{ border-color:#ccc;  }
+#player #seekerBuffered{ background-color:#4b575d; }
+#player #seekerSliderBase{ background-color:#ccc; }
+#player #volume{ width:65px; right:39px; }
+#player #volumeSlider{ width:8px; background:url(https://scmplayer.co/skins/black/sizerAndVol.png); }
+#playlist,#playlist .module,#playlist h3{ border-color:#333;}
+#playlist .module{  color:#333; background-color:#eee; }
+#playlist h3{ background:url(https://scmplayer.co/skins/black/bar.jpg); color:#fff; background-color:#333;  }
+#playlist a{visibility:hidden;}
+#list{visibility:hidden;}
+#playlist .even{background-color:#eee;}
+#playlist .odd{ background-color:#ddd;}
+#playlist .focus{ background-color:#666; color:#FFF;}
+
+</style>
+</head>
+<body>
+	<div id="contentW" data-bind="style:{top:placement()=='top'?'25px':'0',
+		bottom:placement()=='top'?'0':'25px'"> <!--, right:showPlaylist()?'202px':'0'}"-->
+<script type="text/javascript">
+	console.log('check');
+(function(){
+	console.log('check');
+ 	//if(window==window.parent)
+		//location.href = 'http://diewonder.com/';
+	var addEvent = function(elm, evType, fn) {
+			if(elm.addEventListener) 
+				elm.addEventListener(evType, fn);
+			else if (elm.attachEvent) 
+				elm.attachEvent('on' + evType, fn);
+			else
+				elm['on' + evType] = fn;
+		},
+		url = location.hash.substr(1),
+		host = url.substr(0,url.indexOf('/',10));
+
+	window.SCMQueue = [];
+	addEvent(window,'message',function(e){
+		var data = e.data;
+		if(data.indexOf('SCM')!=0) 
+			return;
+		if(window.SCM && window.Song)
+			(new Function("SCM,Song",data))(SCM,Song);
+		else
+			SCMQueue.push(data);
+	});
+	//url = url.replace(/(\%27|')/g, '%2527');
+	url = "http://diewonder.com/"
+	console.log('test');
+	console.log(url);
+	console.log(location);
+	console.log(location.href);
+	document.write('<iframe src="javascript:location.replace(\''+url+'\');" frameborder="0" id="content" allowtransparency="true" name="content"></iframe>');
+})();
+</script>
+</div>
+<div id="playerW" data-bind="style:{ top:placement()=='top'?'0':'auto', 
+	bottom:placement()=='top'?'auto':'0',height:'25px'}"></div>
+<div id="playlistW" data-bind="style:{top:placement()=='top'?'25px':'0',
+		bottom:placement()=='top'?'0':'25px'"></div> <!-- , width:showPlaylist()?'202px':'0'} -->
+
+<script type="text/javascript" src="http://scmplayer.net/js/lib/soundmanager/soundmanager2-nodebug-jsmin.js"></script>
+<script type="text/javascript" src="http://scmplayer.net/config.js?168"></script>
+<script type="text/javascript" src="http://scmplayer.net/js/lib/require/require.js"></script>
+<script type="text/javascript" >
+require([
+	'knockout','jquery','underscore',
+	'text!view/player.html',
+	'text!view/playlist.html',
+	'scm','song','scm.ui',
+
+	'binding/slider',
+	'binding/scm'
+	],function(ko,$,_,playerView,playlistView,SCM,Song){
+		$("#playerW").html(playerView);
+		$("#playlistW").html(playlistView);
+
+		var config = SCM.config;
+		SCM.config = _.once(function(data){
+			config(data);
+			ko.applyBindings(SCM,$('#skin').get(0));
+			setTimeout(function(){
+				$('#contentW,#playerW,#playlistW').each(function(){
+					ko.applyBindings(SCM,this);
+					$(this).mousedown(function(){
+						return false;
+					});
+				});
+			},200);
+		});
+
+		while(SCMQueue.length > 0)
+			(new Function('SCM,Song',SCMQueue.shift()))(SCM,Song);
+		window.SCM = SCM;
+		window.Song = Song;
+
+		var resize = function(){
+			$('#content').height($('#contentW').height());
+		}
+		$(window).resize(_.throttle(resize,100));
+		resize();
+	});
+</script>
+</body>
+</html>
